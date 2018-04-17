@@ -29,22 +29,22 @@ export interface PeopleResponse {
 
 function swapiStalker(eyeColor: string): StarWarsCharacter[] {
   return IO(getCharacters).with()
-          .map((x) => x.next)                         // next refers to pagination { "next": "https://swapi.co/api/people/?page=2" }
-          .IO(getNextPage)                           // getNextPage is a doWhile
-          .concatMap((x) => x.results)
-          .filter((x) => x.eye_color === eyeColor)
-          .map((character) => {
-            return zip(
-              IO(getHomeWorld).with(character.homeworld),
-              map((character) => character),
-              (character, homeworld) => ({ ...character, homeworld }),
-            )
-          })
+    .map((x) => x.next)
+    .IO(getNextPage)
+    .concatMap((x) => x.results)
+    .filter((x) => x.eye_color === eyeColor)
+    .map((character) => {
+      return zip(
+        IO(getHomeWorld).with(character.homeworld),
+        map((character) => character),
+        (character, homeworld) => ({ ...character, homeworld }),
+      )
+    })
 }
 
-for await (const character of swapiStalker("blue")) {
-  console.log(character)
-}
+// for await (const character of swapiStalker("blue")) {
+//   console.log(character)
+// }
 
 function getCharacters() {
 

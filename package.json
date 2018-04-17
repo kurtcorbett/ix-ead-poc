@@ -12,17 +12,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "typescript": "^2.1.6"
+    "iterall": "^1.2.2",
+    "node": "^9.11.0",
+    "typescript": "^2.8.1"
   },
   "devDependencies": {
     "@types/chai": "^3.4.34",
-    "@types/mocha": "^2.2.39",
-    "@types/node": "^7.0.5",
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^9.6.4",
+    "@types/reflect-metadata": "^0.1.0",
     "chai": "^3.5.0",
     "cs-tslint-rules": "^1.0.1",
     "mocha": "^3.2.0",
-    "reflect-metadata": "^0.1.9",
-    "ts-node": "^2.1.0",
+    "reflect-metadata": "^0.1.12",
+    "ts-node": "^5.0.1",
     "tslint": "^4.4.2"
   }
 }

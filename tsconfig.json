@@ -4,12 +4,8 @@
     "target": "es6",
     "lib": [
       "es6",
-      "dom"
-    ],
-    "types": [
-      "reflect-metadata",
-      "node",
-      "mocha"
+      "dom",
+      "esnext.asynciterable"
     ],
     "module": "commonjs",
     "moduleResolution": "node",
