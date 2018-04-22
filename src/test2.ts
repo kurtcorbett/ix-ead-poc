@@ -1,33 +1,45 @@
-(<any>Symbol).asyncIterator = Symbol.asyncIterator || Symbol.for("Symbol.asyncIterator");
-import { $$iterator, $$asyncIterator, forAwaitEach } from 'iterall'
+(<any>Symbol).asyncIterator = Symbol.asyncIterator || Symbol.for("Symbol.asyncIterator")
+import { $$iterator, $$asyncIterator, forAwaitEach, getIterator, isAsyncIterable } from 'iterall'
+import { deepEqual } from 'assert'
+import { expect } from 'chai'
 
 export function Effect(target: Function, key: string, descriptor: any) {
   // save a reference to the original method
   // this way we keep the values currently in the
   // descriptor and don't overwrite what another
   // decorator might have done to the descriptor.
-  var originalMethod = descriptor.value;
+  var originalMethod = descriptor.value
 
   descriptor.value = function(...args: any[]) {
     return new EffectIterable(originalMethod, {
       methodName: key
-    }).args(...args)
+    }).withArgs(...args)
   }
 
-  return descriptor;
+  return descriptor
 }
 
+export function Coordinator(target: Function, key: string, descriptor: any) {
+  // save a reference to the original method
+  // this way we keep the values currently in the
+  // descriptor and don't overwrite what another
+  // decorator might have done to the descriptor.
+  var originalMethod = descriptor.value
 
-export function testFn(subjectGen: (...args) => AsyncIterable<any>) {
-  return function tester(executeFn: (subjectGen) => any[]) {
-    const expectedIteration = executeFn(subjectGen);
+  descriptor.value = function(...args: any[]) {
+    return new EffectIterable(originalMethod, {
+      methodName: key
+    }).withArgs(...args)
   }
+
+  return descriptor
 }
 
 export class EffectIterable {
-  private _args: any[];
-  testMode: boolean = false;
-  methodName: string;
+  private args: any[]
+  private stub: any
+  testMode: boolean
+  methodName: string
 
   constructor(
     public fn: (...args: any[]) => any,
@@ -36,74 +48,139 @@ export class EffectIterable {
     this.methodName = opts && opts.methodName || fn.name
   }
 
-  args (...args) {
-    this._args = args
+  withArgs(...args) {
+    this.args = args
     return this
-  };
+  }
 
-  callWith (...args) {
-    this._args = args
-    return this.next()
-  };
+  returnStub(value?: any) {
+    this.testMode = true
+    this.stub = value
+    return this
+  }
 
+  getStub() {
+    return this.stub
+  }
 
   [$$asyncIterator]() {}
 
-  async next(mock?: any): Promise<EffectIteratorResult> {
-    let value;
-    let isFake;
+  async next(): Promise<any> {
 
-    if(this.testMode && mock !== null) {
-      value = mock;
-      isFake = true;
+    if(this.testMode) {
+      return new EffectIteratorResult({
+        methodName: this.methodName,
+        args: this.args,
+        value: this.stub
+      })
+    } else {
+      const args = this.args;
+      const fn = this.fn;
+      console.log('hey')
+      async function * genWrapper() {
+        const result = await fn(...args)
+        console.log(result)
+        return result
+      }
+      return {
+        done: true,
+        beans: 'yo',
+        value: genWrapper()
+      }
     }
-
-    if (!this.testMode) {
-      value = await this.fn(...this._args)
-      isFake = false;
-    }
-
-    return new EffectIteratorResult({
-      methodName: this.methodName,
-      args: this._args,
-      isFake,
-      value
-    })
   }
 
   async return(value?: any): Promise<EffectIteratorResult> {
-    return value;
+    return value
   }
 }
 
-export async function unpackEffects(generator) {
-  const coordinator = generator();
+export async function executeEffects(parentGen, child = undefined) {
+  if (isAsyncIterable(parentGen)) {
+    console.log(child)
+    const parentResult = isAsyncIterable(child)
+      ? await parentGen.next(await executeEffects(child))
+      : await parentGen.next()
 
-  return yieldEffects(coordinator, undefined)
+
+    if(parentResult.done) {
+      return parentResult.value
+    } else {
+      return executeEffects(parentGen, parentResult.value)
+    }
+  } else {
+    console.log(parentGen)
+  }
+
 }
 
-async function yieldEffects(coordinator, value) {
+// if done, return result
+// if not, call result
+
+function isFunction(x) {
+  return Object.prototype.toString.call(x) == '[object Function]';
+}
+
+function isCoordinatorFn(value) {
+  const result = value instanceof EffectIterable === false && isAsyncIterable(value)
+  return result
+}
+
+interface ISequenceMap {
+  args: any[],
+  effects: EffectIterable[],
+  output: any
+}
+
+
+
+export function testFn(fnInTest: (...args) => AsyncIterable<any>) {
+  return async function tester({ args, effects, output }: ISequenceMap) {
+
+
+    const coordinator = fnInTest(...args)
+    const expectedIterator = getIterator(effects)
+
+    const finalResult = await testCoordinator(coordinator, expectedIterator)
+    deepEqual(finalResult, output)
+    return true
+  }
+}
+
+async function testCoordinator(coordinator, expected, value = undefined) {
   const yielded = await coordinator.next(value)
 
   if(yielded.done === false) {
+    const isYieldedAGenFn = yielded.value instanceof EffectIterable === false && isAsyncIterable(yielded.value)
+    const expectedEI = await expected.next().value
     const ei = yielded.value
 
+    if(isYieldedAGenFn) {
+      const genResult = await yielded.value.return(expectedEI.stub)
+      return testCoordinator(coordinator, expected, genResult.value)
+    }
+
     if(ei instanceof EffectIterable) {
-      const result = await ei.next()
-      return yieldEffects(coordinator, result.value)
+      const eiResult = await testEffect(expectedEI, ei)
+      return testCoordinator(coordinator, expected, eiResult.value)
     } else {
-      throw new Error('not iterable')
+      throw new Error('Not an EffectIterable')
     }
   } else {
     return yielded.value
   }
 }
 
+async function testEffect(expected, ei) {
+  deepEqual(ei.fn, expected.fn)
+  deepEqual(ei.args, expected.args)
+  return ei.returnStub(expected.stub).next()
+}
+
 export class EffectIteratorResult {
   methodName: string
   args: any[]
   value: any
-  isFake: boolean
 
   constructor(
     data: IEffectIteratorResult
@@ -118,7 +195,6 @@ interface IEffectIteratorResult {
   methodName: string
   args: any[]
   value: any
-  isFake: boolean
 }
 
 
