@@ -74,17 +74,13 @@ export class EffectIterable {
         value: this.stub
       })
     } else {
-      const args = this.args;
-      const fn = this.fn;
-      console.log('hey')
+      const klass = this;
       async function * genWrapper() {
-        const result = await fn(...args)
-        console.log(result)
-        return result
+        return klass.fn(...klass.args)
       }
+
       return {
         done: true,
-        beans: 'yo',
         value: genWrapper()
       }
     }
@@ -97,33 +93,23 @@ export class EffectIterable {
 
 export async function executeEffects(parentGen, child = undefined) {
   if (isAsyncIterable(parentGen)) {
-    console.log(child)
     const parentResult = isAsyncIterable(child)
       ? await parentGen.next(await executeEffects(child))
       : await parentGen.next()
 
 
     if(parentResult.done) {
+      if (isAsyncIterable(parentResult.value)) {
+        return executeEffects(parentResult.value)
+      }
       return parentResult.value
     } else {
       return executeEffects(parentGen, parentResult.value)
     }
   } else {
-    console.log(parentGen)
+    throw new TypeError(`#executeEffects must be called with an iterable. Did you forget to call your generator function?`)
   }
 
-}
-
-// if done, return result
-// if not, call result
-
-function isFunction(x) {
-  return Object.prototype.toString.call(x) == '[object Function]';
-}
-
-function isCoordinatorFn(value) {
-  const result = value instanceof EffectIterable === false && isAsyncIterable(value)
-  return result
 }
 
 interface ISequenceMap {

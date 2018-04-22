@@ -13,7 +13,7 @@ function asyncAdd(...args): Promise<number> {
       acc += curr
       return acc
     }, 0)
-
+    console.log(result)
     resolve(result)
   })
 }
@@ -139,9 +139,7 @@ describe.only('executeEffects', () => {
   context('nested with flat', () => {
     async function * nestedCoordinator(num: number) {
       const res1 = yield await new EffectIterable(coordinator).withArgs(num)
-      console.log(res1)
-      const result = yield await new EffectIterable(asyncAdd).withArgs(res1)
-      console.log(result)
+      const result = yield await new EffectIterable(asyncAdd).withArgs(res1, num)
       return result
     }
 
@@ -171,7 +169,7 @@ describe.only('executeEffects', () => {
     })
   })
 
-  context.only('deeply nested async generators', () => {
+  context('deeply nested async generators', () => {
     let result;
 
     beforeEach(async () => {
@@ -205,7 +203,7 @@ describe.only('executeEffects', () => {
     })
   })
 
-  context.only('async generator', () => {
+  context('async generator', () => {
     let result;
 
     beforeEach(async () => {
@@ -221,7 +219,7 @@ describe.only('executeEffects', () => {
     })
   })
 
-  context.only('single EI', () => {
+  context('single EI', () => {
     function add(a, b) {
       return a + b;
     }
