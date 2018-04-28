@@ -13,6 +13,9 @@
     "emitDecoratorMetadata": true,
     "declaration": false,
     "outDir": "../dist",
+    "typeRoots": [
+      "node_modules/@types/"
+    ],
     "noUnusedParameters": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

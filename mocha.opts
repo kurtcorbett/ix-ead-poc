@@ -1,5 +1,8 @@
---require ts-node/register
---recursive
+--compilers ts:ts-node/register
+--watch-extensions ts
+--require source-map-support/register
+--require ./test-setup
+--full-trace
 --reporter spec
 
 **/*.spec.ts
