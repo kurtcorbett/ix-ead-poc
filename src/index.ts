@@ -144,7 +144,7 @@ async function testCoordinator(coordinator, expected, value = undefined) {
       if (isEffectDecoratorEI) {
         await testEffect(expectedEI[0], ei)
         eiResult = await ei.return(expectedEI[1])
-      } else if (expected.stub) {
+      } else if (expectedEI.stub) {
         await testEffect(expectedEI, ei)
         eiResult = await ei.return(expectedEI.stub)
       } else {
