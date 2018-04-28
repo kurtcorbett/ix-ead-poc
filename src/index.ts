@@ -103,7 +103,7 @@ export async function executeEffects(parentGen, child = undefined) {
 
 interface ISequenceMap {
   args: any[],
-  effects: EffectIterable[],
+  effects: any[],
   output: any
 }
 
@@ -144,9 +144,12 @@ async function testCoordinator(coordinator, expected, value = undefined) {
       if (isEffectDecoratorEI) {
         await testEffect(expectedEI[0], ei)
         eiResult = await ei.return(expectedEI[1])
-      } else {
+      } else if (expected.stub) {
         await testEffect(expectedEI, ei)
         eiResult = await ei.return(expectedEI.stub)
+      } else {
+        await testEffect(expectedEI, ei)
+        eiResult = { done: true, value: await executeEffects(ei) }
       }
       return testCoordinator(coordinator, expected, eiResult.value)
     } else {

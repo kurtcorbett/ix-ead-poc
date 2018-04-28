@@ -17,3 +17,38 @@
 
   If not, can we call our function but short circuit its execution and monkey patch the result so we can benefit from its static typing.
 
+### Possible testing apis
+
+``` javascript
+
+it('gets characters with blonde hair', async () => {
+  const testGetCharacterDetails = testFn(Swapi.getCharacterDetails)
+
+  return testGetCharacterDetails
+    .args(['blond'])
+    .effect(Swapi.getCharacters(), characters)
+    .effect(Swapi.getHomeworld(Luke_Skywalker.homeworld), returnStub(Tatooine_Planet))
+    .output([ Luke_with_home_world ])
+})
+```
+
+``` javascript
+it('happy path', async () => {
+  const testGetCharacterDetails = testFn(Swapi.getCharacterDetails)
+
+  return testGetCharacterDetails({
+  // argument to coordinator function
+    args: ['blond'],
+    effects: [
+  //  [ @Effect decorated function, stub value ]
+      [ Swapi.getCharacters(), characters ],
+      [ Swapi.getHomeworld(Luke_Skywalker.homeworld), returnStub(Tatooine_Planet) ],
+    ],
+  // expected return value of the coordinator function
+    output: [ Luke_with_home_world ],
+  })
+})
+```
+
+
+

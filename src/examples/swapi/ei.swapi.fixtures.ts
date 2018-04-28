@@ -1,4 +1,4 @@
-const characters = [
+export const characters = [
   {
     name: 'Luke Skywalker',
     height: '172',
@@ -96,7 +96,7 @@ const characters = [
     birth_year: '41.9BBY',
     gender: 'male',
     homeworld: 'https://swapi.co/api/planets/1/',
-    films: [Does
+    films: [
       'https://swapi.co/api/films/2/',
       'https://swapi.co/api/films/6/',
       'https://swapi.co/api/films/3/',
@@ -272,6 +272,40 @@ const characters = [
   }
 ]
 
+export const Tatooine_Planet = {
+	"name": "Tatooine",
+	"rotation_period": "23",
+	"orbital_period": "304",
+	"diameter": "10465",
+	"climate": "arid",
+	"gravity": "1 standard",
+	"terrain": "desert",
+	"surface_water": "1",
+	"population": "200000",
+	"residents": [
+		"https://swapi.co/api/people/1/",
+		"https://swapi.co/api/people/2/",
+		"https://swapi.co/api/people/4/",
+		"https://swapi.co/api/people/6/",
+		"https://swapi.co/api/people/7/",
+		"https://swapi.co/api/people/8/",
+		"https://swapi.co/api/people/9/",
+		"https://swapi.co/api/people/11/",
+		"https://swapi.co/api/people/43/",
+		"https://swapi.co/api/people/62/"
+	],
+	"films": [
+		"https://swapi.co/api/films/5/",
+		"https://swapi.co/api/films/4/",
+		"https://swapi.co/api/films/6/",
+		"https://swapi.co/api/films/3/",
+		"https://swapi.co/api/films/1/"
+	],
+	"created": "2014-12-09T13:50:49.641000Z",
+	"edited": "2014-12-21T20:48:04.175778Z",
+	"url": "https://swapi.co/api/planets/1/"
+}
+
 export const Luke_Skywalker = characters[0]
 export const C_3PO = characters[0]
 export const R2_D2 = characters[0]
@@ -282,3 +316,5 @@ export const Beru_Whitesun_lars = characters[0]
 export const R5_D4 = characters[0]
 export const Biggs_Darklighter = characters[0]
 export const Obi_Wan_Kenobi = characters[0]
+
+export const Luke_with_home_world = { ...Luke_Skywalker, homeworld: Tatooine_Planet.name }

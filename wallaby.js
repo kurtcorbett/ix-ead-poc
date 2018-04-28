@@ -2,11 +2,12 @@ module.exports = function (wallaby) {
 
   return {
     files: [
-      'src/**/*.ts'
+      { pattern: 'src/**/*.ts', load: false },
+      { pattern: 'src/**/*.spec.ts', ignore: true },
     ],
 
     tests: [
-      'specs/**/*.spec.ts'
+      'src/**/*.spec.ts'
     ],
 
     compilers: {

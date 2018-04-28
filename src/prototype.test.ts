@@ -1,4 +1,0 @@
-@Effects()
-class TestIOFunctions {
-
-}
